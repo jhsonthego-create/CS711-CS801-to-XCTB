@@ -79,6 +79,58 @@ QCII_TONE_CODES = {
   767.4:'STR_156', 810.2:'STR_157', 855.5:'STR_158',
   903.2:'STR_159', 928.1:'STR_129', 1930.2:'STR_200',
 }
+TPL_CODE = {
+    '67.0': 'STR_XZ',
+    '69.3': 'STR_WZ',
+    '71.9': 'STR_XA',
+    '74.4': 'STR_WA',
+    '77.0': 'STR_XB',
+    '79.7': 'STR_WB',
+    '82.5': 'STR_YZ',
+    '85.4': 'STR_YA',
+    '88.5': 'STR_YB',
+    '91.5': 'STR_ZZ',
+    '94.8': 'STR_ZA',
+    '97.4': 'STR_ZB',
+    '100.0': 'STR_1Z',
+    '103.5': 'STR_1A',
+    '107.2': 'STR_1B',
+    '110.9': 'STR_2Z',
+    '114.8': 'STR_2A',
+    '118.8': 'STR_2B',
+    '123.0': 'STR_3Z',
+    '127.3': 'STR_3A',
+    '131.8': 'STR_3B',
+    '136.5': 'STR_4Z',
+    '141.3': 'STR_4A',
+    '146.2': 'STR_4B',
+    '151.4': 'STR_5Z',
+    '156.7': 'STR_5A',
+    '162.2': 'STR_5B',
+    '167.9': 'STR_6Z',
+    '173.8': 'STR_6A',
+    '179.9': 'STR_6B',
+    '186.2': 'STR_7Z',
+    '192.8': 'STR_7A',
+    '203.5': 'STR_M1',
+    '206.5': 'STR_8Z',
+    '210.7': 'STR_M2',
+    '218.1': 'STR_M3',
+    '225.7': 'STR_M4',
+    '229.1': 'STR_9Z',
+    '233.6': 'STR_M5',
+    '241.8': 'STR_M6',
+    '250.3': 'STR_M7',
+}
+
+def tpl_field_pair(node, direction, frequency, *, source_name):
+    tone = format(float(frequency), ".1f")
+    code = TPL_CODE.get(tone)
+    if code is None or abs(float(tone) - float(frequency)) > 0.00001:
+        raise ValueError(f"Unsupported Motorola TPL frequency {frequency!r} on {source_name} {direction.upper()}")
+    set_field(node, "CP_RXTPLFREQ" if direction == "rx" else "CP_TXTTPLFREQ", tone)
+    set_field(node, "CP_RXTPLCODE" if direction == "rx" else "CP_TXTPLCODE", code)
+
 # Explicit documented placeholder A/B tones, used ONLY when converting a true
 # CS711 single LONG tone to Motorola's A-B / Long C format.
 LONG_C_DUMMY_A_HZ = 296.5
@@ -529,7 +581,7 @@ def build(source,target,output,overwrite=False,profile=None):
    for direction in ('rx','tx'):
     ttype=rec[direction+'_tone_type'];tone=rec[direction+'_tone']
     if ttype=='DPL':set_field(ch,'CP_RXDPLCD' if direction=='rx' else 'CP_TXTDPLCD',tone)
-    if ttype=='TPL':set_field(ch,'CP_RXTPLFREQ' if direction=='rx' else 'CP_TXTTPLFREQ',tone)
+    if ttype=='TPL':tpl_field_pair(ch,direction,tone,source_name=name)
   if rec['mode']=='Digital':
    if rec['rx_group_number']:
     if rec['rx_group_number']!=1:raise ValueError('Unexpected source RX group number')
@@ -867,7 +919,9 @@ def build(source,target,output,overwrite=False,profile=None):
    for side in ('rx','tx'):
     typ=rec[side+'_tone_type'];tone=rec[side+'_tone']
     if typ=='DPL':assert f['CP_RXDPLCD' if side=='rx' else 'CP_TXTDPLCD']==tone
-    if typ=='TPL':assert float(f['CP_RXTPLFREQ' if side=='rx' else 'CP_TXTTPLFREQ'])==float(tone)
+    if typ=='TPL':
+     assert float(f['CP_RXTPLFREQ' if side=='rx' else 'CP_TXTTPLFREQ'])==float(tone)
+     assert f['CP_RXTPLCODE' if side=='rx' else 'CP_TXTPLCODE']==TPL_CODE[format(float(tone),'.1f')]
  for num,rule in rules.items():
   f=imported_check[rule['name']]
   if 'auto_scan' in rule:assert f['CP_UTOSCANEN']=='True' and f['CP_SCNROAMLISTIT']==scan_uuid[rule['scan_list']]
