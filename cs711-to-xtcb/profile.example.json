@@ -1,0 +1,33 @@
+{
+  "exclude_exact_channel_names": [],
+  "scan_lists": [
+    {
+      "name": "Scan Example",
+      "members": [
+        {"position": 1, "name": "Selected", "source_channel_number": null},
+        {"position": 2, "name": "Example Channel 1", "source_channel_number": 1}
+      ]
+    }
+  ],
+  "source_scan_list_index_map": {
+    "1": "Scan Example"
+  },
+  "roam_lists": [
+    {
+      "name": "Roam Example",
+      "required_talkgroup_id": 123456,
+      "members": [
+        {"position": 1, "name": "Example Digital Channel", "source_channel_number": 2}
+      ]
+    }
+  ],
+  "roam_list_by_talkgroup": {
+    "123456": "Roam Example"
+  },
+  "remap_existing_roam_lists": {},
+  "frequency_corrections": {},
+  "existing_qcii_ab_systems": [],
+  "channel_rules": [],
+  "must_keep_channel_names": [],
+  "zone_regressions": []
+}
